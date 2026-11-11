@@ -436,8 +436,15 @@ function compute(st) {
 
 const $ = id => document.getElementById(id);
 const sheet = $('sheet'), rowsEl = $('rows');
-/* To hard-code your Firebase config, paste the object here. Otherwise use the "Local only / Cloud" button in the top bar. */
-const FIREBASE_CONFIG = null;
+/* Firebase project: aqsa-bill. A config pasted through the Cloud button in the top bar overrides this one. */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAtm4RvJC2G_5HMsVnGdyAf1hgmSUCmg7o",
+  authDomain: "aqsa-bill.firebaseapp.com",
+  projectId: "aqsa-bill",
+  storageBucket: "aqsa-bill.firebasestorage.app",
+  messagingSenderId: "577564790700",
+  appId: "1:577564790700:web:f7fcf817d527cdfb9df409"
+};
 const K = { draft: 'gst-invoice-maker:draft', inv: 'gst-invoice-maker:saved', cli: 'gst-invoice-maker:clients', cfg: 'gst-invoice-maker:fbconfig' };
 const today = () => { const d = new Date(); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getFullYear()).slice(-2); };
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -448,14 +455,14 @@ const blankItem = () => ({ desc: '', hsn: '', qty: '', rate: '' });
 
 const DEFAULT = () => ({
   copy: 'Original Buyer’s Copy',
-  seller: { name: 'AQSA ENTERPRISE', addr1: 'Bangihati, Maddham Para, Bhushan Steel, Bangihati,', addr2: 'Serampore, Hooghly, West Bengal - 712203', phone: '8100454849', gstin: '19AUFPA3696K1Z9', pan: 'AUFPA3696K' },
-  buyer: { name: 'Tara Maa Corporation', l1: '53, Tiljala, Road Kolkata', l2: 'West Bengal - 700039', l3: '' },
-  meta: { no: '17', date: '09/11/26', challan: '', challanDt: '', order: '', orderDt: '', transport: 'lorry Truck WBD-5042', gstin: '19BGHPM6421R1ZO' },
-  items: [{ desc: 'PP Multifilament Yarn', hsn: '54025910', qty: '421.2', rate: '257' }],
+  seller: { name: '', addr1: '', addr2: '', phone: '', gstin: '', pan: '' },
+  buyer: { name: '', l1: '', l2: '', l3: '' },
+  meta: { no: '1', date: today(), challan: '', challanDt: '', order: '', orderDt: '', transport: '', gstin: '' },
+  items: [{ desc: '', hsn: '', qty: '', rate: '' }],
   taxMode: 'gst', taxRate: '5', roundMode: 'down',
-  bank: { bank: 'Punjab National Bank', acct: 'AQSA ENTERPRISE', no: '3201002100009226', branch: 'BAMUNARI', ifsc: 'PUNB0320100' },
+  bank: { bank: '', acct: '', no: '', branch: '', ifsc: '' },
   note: 'Interest will be charged @ 18% per Annum if not paid within due date.',
-  jurisdiction: 'Subject to Kolkata Jurisdiction only',
+  jurisdiction: '',
   clientId: '', category: ''
 });
 
@@ -559,6 +566,7 @@ function update() {
   $('vRo').textContent = fmtPaise(r.ro);
   $('vTotal').textContent = fmtPaise(r.total);
   $('forCo').textContent = (state.seller.name || '').toUpperCase();
+  $('btnCompany').classList.toggle('primary', !state.seller.name);
   const lines = splitLines(amountText(r.total), 42);
   $('words').innerHTML = lines.map((t, i) => `<div class="wl">${i === 0 ? '<span>Rs.</span>' : ''}<div class="wt"></div></div>`).join('');
   $('words').querySelectorAll('.wt').forEach((el, i) => { el.textContent = lines[i]; });
@@ -807,7 +815,7 @@ function cloudStatus() {
   $('btnUpload').disabled = !cloud.active;
 }
 async function initCloud() {
-  cloud.cfg = FIREBASE_CONFIG || parseCfg(read(K.cfg) && read(K.cfg).raw);
+  cloud.cfg = parseCfg(read(K.cfg) && read(K.cfg).raw) || FIREBASE_CONFIG;
   if (!cloud.cfg) { renderDrawer(); return; }
   if (location.protocol === 'file:') {
     cloud.note = 'Google sign-in file:// se khole gaye page par kaam nahi karta. Is file ko https par host kijiye (Firebase Hosting, GitHub Pages ya Netlify) aur wahan kholiye.';
